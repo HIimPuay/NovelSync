@@ -1,0 +1,109 @@
+/* ตั้งค่าสไตล์พื้นฐานของ Navbar */
+.navbar {
+    background-color: #AD8B73;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    height: 60px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* โลโก้ */
+  .logo {
+    background-color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* ช่องค้นหา */
+  .search-container {
+    position: relative;
+    width: 40%;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 8px 40px 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 14px;
+    background: #f1f1f1;
+  }
+  
+  /* ไอคอนค้นหา */
+  .search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgb(0, 0, 0);
+  }
+  
+  /* ไอคอนเมนู */
+  .menu-icon {
+    color: white;
+    cursor: pointer;
+  }
+
+  .menu-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background-color: #E3CAA5;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 150px;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  
+  .menu-dropdown.open {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  
+  .menu-dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 10px;
+  }
+  
+  .menu-dropdown li {
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .menu-dropdown li a {
+    text-decoration: none;
+    color: black;
+    display: block;
+  }
+  
+  .menu-dropdown li:hover {
+    background-color: white;
+  }
+  
+  .signin-icon {
+    display: flex;
+    color: white;
+    align-items: center;
+    margin-left: 20px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.signin-icon:hover {
+    color: #E3CAA5;
+}
