@@ -1,3 +1,4 @@
+
 .edit-container {
   padding: 20px;
   position: relative;
@@ -60,7 +61,7 @@
   background-color: white;
 }
 
-.folder-icon, .zoomIn-icon, .zoomOut-icon, .cursor-icon {
+.folder-icon, .zoomIn-icon, .zoomOut-icon, .cursor-icon, .eraser-icon {
   color: rgb(0, 0, 0);
   cursor: pointer;
   border: 1px solid;
@@ -90,9 +91,13 @@
   right: 200px;
 }
 
+.eraser-icon {
+  left: 100px;
+}
+
 .circle {
-  width: 40px;
-  height: 40px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: black 1px solid;
   background-color: rgb(93, 114, 182);
@@ -102,4 +107,16 @@
   font-weight: bold;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
   position: absolute;
+  z-index: -500;
+}
+
+.eraser-icon.eraser-active {
+  background-color: rgb(154, 221, 154);
+  border-color: darkgreen;
+}
+
+.line-label {
+  pointer-events: none;
+  background: white;
+  padding: 2px 4px;
 }
