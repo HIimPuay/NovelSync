@@ -6,6 +6,7 @@ import Home from './pages/homepage';
 import Profile from './pages/profile';
 import Login from './pages/login';
 import Register from './pages/register';
+import ForgotPassword from './pages/forgotpassword';
 import Navbar from './components/navbar';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -58,6 +59,10 @@ function App() {
       path: '/register',
       element: <Register onLogin={handleLogin} />,
     },
+    {
+      path: '/forgot-password',
+      element: <ForgotPassword onLogin={handleLogin} />,
+    }
     
   ]);
 

@@ -1,112 +1,253 @@
-import { useState, useEffect, useRef } from 'react';
-import Draggable from 'react-draggable';
+import React, { useEffect, useRef, useState } from 'react';
 import '../components/styles/editpage.css';
-import { Pen, FolderOpen, ZoomIn, ZoomOut, MousePointer, Eraser } from "lucide-react";
+
+// Hooks
+import useElementManager from '../hooks/useElementManager';
+import useToolManager from '../hooks/useToolManager';
+
+// Components
+import ProjectName from '../components/editpage-components/ProjectName';
+import Toolbar from '../components/editpage-components/Toolbar';
+import EditDropdown from '../components/editpage-components/EditDropdown';
+import StyleDropdown from '../components/editpage-components/StyleDropdown';
+import Canvas from '../components/editpage-components/Canvas';
+import PropertyPanel from '../components/editpage-components/PropertyPanel';
 
 function EditPage() {
-  const [editOpen, setEditOpen] = useState(false);
-  const [circles, setCircles] = useState([]);
-  const [isErasing, setIsErasing] = useState(false);
-  const [lines, setLines] = useState([]);
+  const canvasRef = useRef(null);
+  const [isEditDropdownOpen, setIsEditDropdownOpen] = useState(false);
+  const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
+  const [projectName, setProjectName] = useState("Untitled Character Diagram");
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  
+  const {
+    elements,
+    selectedElements,
+    selectedElement,
+    handleSelectElement,
+    addElement,
+    updateElement,
+    removeElement,
+    createRelationship,
+    toggleElementVisibility,
+    triggerImageUpload,
+    saveProject,
+    loadProject,
+    clearSelection
+  } = useElementManager(canvasRef);
 
-  const addCircle = (e) => {
-    e.preventDefault();
-    setCircles([...circles, { 
-      id: circles.length, 
-      x: 300, 
-      y: 200 
-    }]);
-  };
+  const {
+    activeTool,
+    isErasing,
+    relationshipMode,
+    zoomLevel,
+    setTool,
+    toggleEdit,
+    toggleStyle,
+    toggleEraser,
+    toggleRelationshipMode,
+    handleZoomIn,
+    handleZoomOut,
+    resetZoom
+  } = useToolManager();
 
-  const addLine = (e) => {
-    e.preventDefault();
-    setLines([...lines, {
-      id: Date.now(),
-      x: 300,
-      y: 250
-    }]);
-  }
+  // Track unsaved changes
+  useEffect(() => {
+    setUnsavedChanges(true);
+  }, [elements]);
 
-  const toggleEdit = () => {
-    setEditOpen(!editOpen);
-  };
+  useEffect(() => {
+    // Initialize canvas and setup global event handlers
+    
+    // Handle escape key to clear selection
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        clearSelection();
+        // Also exit any special modes
+        if (isErasing) toggleEraser();
+        if (relationshipMode) toggleRelationshipMode();
+      }
+      
+      // Handle keyboard shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          handleSave();
+        } else if (e.key === 'z') {
+          // Undo functionality could be implemented here
+        }
+      }
+    };
+    
+    // Handle clicks outside the canvas
+    const handleClickOutside = (event) => {
+      const isToolbarClick = event.target.closest('.toolbar');
+      const isPropertyPanelClick = event.target.closest('.property-panel');
+      
+      if (!isToolbarClick && !isPropertyPanelClick && 
+          !canvasRef.current?.contains(event.target)) {
+        // Close dropdowns if clicking outside toolbar and canvas
+        setIsEditDropdownOpen(false);
+        setIsStyleDropdownOpen(false);
+      }
+    };
 
-  const toggleEraser = () => {
-    setIsErasing(!isErasing);
-  };
+    // Add event listeners
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    // Prompt user before leaving with unsaved changes
+    const handleBeforeUnload = (e) => {
+      if (unsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isErasing, relationshipMode, unsavedChanges, clearSelection, toggleEraser, toggleRelationshipMode]);
 
-  const removeCircle = (id) => {
-    setCircles(circles.filter(circle => circle.id !== id));
-  };
-
-  // Close dropdown when clicking outside
-  const handleClickOutside = (e) => {
-    if (editOpen && !e.target.closest('.edit-icon') && !e.target.closest('.edit-dropdown')) {
-      setEditOpen(false);
+  // Handle saving the project
+  const handleSave = () => {
+    if (saveProject) {
+      const success = saveProject({ name: projectName, elements });
+      if (success) {
+        setUnsavedChanges(false);
+      }
     }
   };
 
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [editOpen]);
+  // Handle loading a project
+  const handleLoad = () => {
+    const loadedName = loadProject();
+    if (loadedName) {
+      setProjectName(loadedName);
+      setUnsavedChanges(false);
+    }
+  };
+
+  // Toggle functions to manage dropdown state
+  const handleToggleEdit = () => {
+    setIsEditDropdownOpen(!isEditDropdownOpen);
+    setIsStyleDropdownOpen(false); // Close the other dropdown
+    toggleEdit();
+  };
+
+  const handleToggleStyle = () => {
+    setIsStyleDropdownOpen(!isStyleDropdownOpen);
+    setIsEditDropdownOpen(false); // Close the other dropdown
+    toggleStyle();
+  };
+
+  const handleCanvasClick = () => {
+    // Close dropdowns when clicking on canvas
+    setIsEditDropdownOpen(false);
+    setIsStyleDropdownOpen(false);
+    
+    // Clear selection if clicking on empty canvas
+    // This may need adjustment based on your Canvas component implementation
+  };
+
+  // Wrap addElement to close dropdown after adding
+  const handleAddElement = (type) => (e) => {
+    const newElement = addElement(type)(e);
+    setIsEditDropdownOpen(false);
+    return newElement;
+  };
+
+  // Handle project name change
+  const handleProjectNameChange = (newName) => {
+    setProjectName(newName);
+    setUnsavedChanges(true);
+  };
 
   return (
-    <div className={`edit-page ${isErasing ? "eraser-mode" : ""}`}>
-      <div className="toolbar">
-        <button className="tool-button folder-icon"><FolderOpen /></button>
-        <button className="tool-button zoomOut-icon"><ZoomOut /></button>
-        <button className="tool-button zoomIn-icon"><ZoomIn /></button>
-        <button className="tool-button cursor-icon"><MousePointer /></button>
-        <button className={`tool-button edit-icon ${editOpen ? "active" : ""}`} onClick={toggleEdit}>
-          <Pen size={28} />
-        </button>
-        <button className={`tool-button eraser-icon ${isErasing ? "active eraser-active" : ""}`} onClick={toggleEraser}>
-          <Eraser size={28} />
-        </button>
+    <div className="edit-page">
+      <div className="top-bar">
+        <ProjectName 
+          initialName={projectName} 
+          onNameChange={handleProjectNameChange}
+          unsavedChanges={unsavedChanges}
+        />
+        
+        <Toolbar 
+          activeTool={activeTool}
+          isErasing={isErasing}
+          relationshipMode={relationshipMode}
+          zoomLevel={zoomLevel}
+          setTool={setTool}
+          toggleEdit={handleToggleEdit}
+          toggleStyle={handleToggleStyle}
+          toggleEraser={toggleEraser}
+          toggleRelationshipMode={toggleRelationshipMode}
+          handleZoomIn={handleZoomIn}
+          handleZoomOut={handleZoomOut}
+          resetZoom={resetZoom}
+          onSave={handleSave}
+          onLoad={handleLoad}
+        />
       </div>
-
-      <div className={`edit-dropdown ${editOpen ? "open" : ""}`}>
-        <ul>
-          <li><a href="#" onClick={addCircle}>เพิ่มตัวละคร</a></li>
-          <li><a href="#">เพิ่มรูปภาพ</a></li>
-          <li><a href="#" onClick={addLine}>เพิ่มความสัมพันธ์</a></li>
-          <li><a href="#">เปลี่ยนสีเส้น</a></li>
-          <li><a href="#">กล่องข้อความ</a></li>
-        </ul>
+      
+      <EditDropdown 
+        isOpen={isEditDropdownOpen}
+        addElement={handleAddElement} 
+      />
+      
+      <StyleDropdown 
+        isOpen={isStyleDropdownOpen}
+        selectedElement={selectedElement} 
+        setCharacterType={(id, type) => updateElement(id, { characterType: type })}
+      />
+      
+      <div className="main-content">
+        <Canvas 
+          canvasRef={canvasRef}
+          elements={elements} 
+          selectedElements={selectedElements}
+          zoomLevel={zoomLevel}
+          isErasing={isErasing}
+          relationshipMode={relationshipMode}
+          handleSelectElement={handleSelectElement}
+          updateElement={updateElement}
+          createRelationship={createRelationship}
+          handleCanvasClick={handleCanvasClick}
+        />
+        
+        {selectedElement && (
+          <PropertyPanel 
+            selectedElement={selectedElement} 
+            updateElement={updateElement} 
+            removeElement={removeElement} 
+            toggleElementVisibility={toggleElementVisibility} 
+            triggerImageUpload={triggerImageUpload} 
+          />
+        )}
       </div>
-
-      <div className="edit-container">
-        <h1>Tools</h1>
-        <div className="canvas-area">
-          {circles.map((circle) => (
-            <DraggableCircle key={circle.id} circle={circle} isErasing={isErasing} removeCircle={removeCircle} />
-          ))}
+      
+      {/* Status bar - optional */}
+      <div className="status-bar">
+        <div className="status-info">
+          {relationshipMode && (
+            <span className="status-mode">Relationship Mode</span>
+          )}
+          {isErasing && (
+            <span className="status-mode">Eraser Mode</span>
+          )}
+          <span className="zoom-level">Zoom: {Math.round(zoomLevel * 100)}%</span>
+          {selectedElements.length > 0 && (
+            <span className="selection-info">
+              {selectedElements.length} item{selectedElements.length !== 1 ? 's' : ''} selected
+            </span>
+          )}
         </div>
       </div>
     </div>
-  );
-}
-
-// Separate component for each draggable circle
-function DraggableCircle({ circle, isErasing, removeCircle }) {
-  const nodeRef = useRef(null);
-  
-  return (
-    <Draggable
-      nodeRef={nodeRef}
-      defaultPosition={{ x: circle.x, y: circle.y }}
-    >
-      <div 
-        ref={nodeRef} 
-        className={`circle ${isErasing ? "eraser-active" : ""}`} 
-        onClick={() => isErasing ? removeCircle(circle.id) : null}
-      >
-        {circle.id}
-      </div>
-    </Draggable>
   );
 }
 

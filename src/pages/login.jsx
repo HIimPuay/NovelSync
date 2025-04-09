@@ -64,7 +64,7 @@ function Login({ onLogin }) {
                         />
                         <div>
                             <label>Password</label>
-                            <a className='forgot-password'>Forgot Password?</a>
+                            <a href="/forgot-password" className='forgot-password'>Forgot Password?</a>
                         </div>
                         <input 
                             type="password" 

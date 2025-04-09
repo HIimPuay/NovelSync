@@ -1,46 +1,72 @@
-/* General container styling */
 .profile-container {
-    text-align: center;
-    margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 }
 
-/* Profile image styling */
 .profile-image {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background-color: #d3d3d3;
-    display: block;
-    margin: 0 auto;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  border: 2px solid #5a49058d;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+  
+}
+.profile-image:hover {
+  transform: scale(1.05);
 }
 
-/* Username styling */
 .username {
-    font-size: 24px;
-    font-weight: bold;
-    font-style: italic;
-    margin-top: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-/* Button container */
 .button-group {
-    margin-top: 20px;
+  display: flex;
+  gap: 10px;
 }
 
-/* Buttons styling */
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f0f0f0;
+  color: #333;
+
+}
 .profile-button {
-    background-color: #d4a97a;
-    border: 2px solid #8b5e3b;
-    border-radius: 15px;
-    padding: 8px 15px;
-    font-size: 14px;
-    font-weight: bold;
-    font-style: italic;
-    cursor: pointer;
-    margin: 0 10px;
-    transition: 0.3s ease-in-out;
+  background-color: #86857a;
+  color: white;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .profile-button:hover {
-    background-color: #c08f5a;
+  background-color: #4f4f43;
+}
+.profile-button:active {
+  background-color: #535440;
+}
+
+.username:hover {
+  color: #4f4f43;
+  text-decoration: underline;
+}
+.username-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 200px;
+  margin-bottom: 20px;
 }
