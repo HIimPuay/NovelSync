@@ -15,14 +15,14 @@ function EditDropdown({ isOpen, addElement }) {
             เพิ่มตัวละคร (Add Character)
           </a>
         </li>
-        <li>
+        {/* <li>
           <a href="#" onClick={(e) => {
             e.preventDefault();
             addElement(ELEMENT_TYPES.IMAGE)();
           }}>
             เพิ่มรูปภาพ (Add Image)
           </a>
-        </li>
+        </li> */}
         <li>
           <a href="#" onClick={(e) => {
             e.preventDefault();

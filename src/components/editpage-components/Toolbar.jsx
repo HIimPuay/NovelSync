@@ -75,13 +75,13 @@ function Toolbar({
         <Link size={24} />
       </button>
       
-      <button 
+      {/* <button 
         className={`tool-button eraser-icon ${isErasing ? "active eraser-active" : ""}`} 
         onClick={toggleEraser}
         title="Erase Elements"
       >
         <Eraser size={24} />
-      </button>
+      </button> */}
       
       <div className="toolbar-divider"></div>
       

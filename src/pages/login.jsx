@@ -64,7 +64,6 @@ function Login({ onLogin }) {
                         />
                         <div>
                             <label>Password</label>
-                            <a href="/forgot-password" className='forgot-password'>Forgot Password?</a>
                         </div>
                         <input 
                             type="password" 
@@ -79,6 +78,7 @@ function Login({ onLogin }) {
                                 onChange={() => setRememberMe(!rememberMe)} 
                             />
                             <label>Remember me</label>
+                            <a href="/forgot-password" className='forgot-password'>Forgot Password?</a>
                         </div>
                         <button className='login-btn' type="submit">Login</button>
                     </form>

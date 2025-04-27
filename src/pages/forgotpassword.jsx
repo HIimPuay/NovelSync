@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import {Link} from "react-router-dom";
 import "../components/styles/forgotpassword.css";
 
 function ForgotPassword() {
@@ -30,23 +31,24 @@ function ForgotPassword() {
           className="box-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
+          
         />
         <label htmlFor="password">New Password:</label>
         <input
           type="password"
           id="password"
           className="box-input"
-          placeholder="Enter new password"
+          
         />
         <label htmlFor="confirm-password">Confirm Password:</label>
         <input
           type="password"
           id="confirm-password"
           className="box-input"
-          placeholder="Confirm new password"
+          
         />
-        <button type="submit">Reset password</button>
+        <button className="back-btn" type="submit">Reset password</button>
+      <Link to="/login"><button className="login-btn">back</button></Link>
       </form>
       {message && <p className="message">{message}</p>}
     </div>

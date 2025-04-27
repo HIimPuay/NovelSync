@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ELEMENT_TYPES } from '../../constants/elementTypes';
-import '../styles/editpage.css'; 
+import '../styles/editpage.css';
 
 // Helper function to render elements
 const renderElement = (ctx, element, isSelected, zoomLevel) => {
   if (element.hidden) return;
-  
+
   ctx.save();
-  
-  // Apply zoom
+
   const zoomedX = element.x * zoomLevel;
   const zoomedY = element.y * zoomLevel;
-  
-  // Set styles based on selection
+
   if (isSelected) {
     ctx.strokeStyle = '#1677ff';
     ctx.lineWidth = 2;
@@ -20,16 +18,14 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
     ctx.strokeStyle = element.color || '#000000';
     ctx.lineWidth = 1;
   }
-  
-  // Handle different element types
+
   switch (element.type) {
-    case ELEMENT_TYPES.CIRCLE:
-      // Draw character circle
+    case ELEMENT_TYPES.CIRCLE: {
       const radius = (element.width / 2) * zoomLevel;
+
       ctx.beginPath();
       ctx.arc(zoomedX, zoomedY, radius, 0, Math.PI * 2);
-      
-      // Fill based on character type
+
       switch (element.characterType) {
         case 'protagonist':
           ctx.fillStyle = '#e6f7ff';
@@ -43,37 +39,26 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
         default:
           ctx.fillStyle = '#ffffff';
       }
-      
+
       ctx.fill();
       ctx.stroke();
-      
-      // Draw profile image if available
+
       if (element.profileImage) {
         const img = new Image();
         img.src = element.profileImage;
-        
-        // Create circular clipping path
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(zoomedX, zoomedY, radius * 0.9, 0, Math.PI * 2);
-        ctx.clip();
-        
-        // Draw image centered in circle
+
         img.onload = () => {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(zoomedX, zoomedY, radius * 0.9, 0, Math.PI * 2);
+          ctx.clip();
+
           const size = radius * 1.8;
-          ctx.drawImage(img, zoomedX - size/2, zoomedY - size/2, size, size);
+          ctx.drawImage(img, zoomedX - size / 2, zoomedY - size / 2, size, size);
+          ctx.restore();
         };
-        
-        // If image is already loaded, draw it immediately
-        if (img.complete) {
-          const size = radius * 1.8;
-          ctx.drawImage(img, zoomedX - size/2, zoomedY - size/2, size, size);
-        }
-        
-        ctx.restore();
       }
-      
-      // Draw text for character name
+
       if (element.text) {
         ctx.fillStyle = '#000000';
         ctx.font = `${12 * zoomLevel}px Arial`;
@@ -81,102 +66,94 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
         ctx.fillText(element.text, zoomedX, zoomedY + radius + 20 * zoomLevel);
       }
       break;
-      
-    case ELEMENT_TYPES.TEXTBOX:
-      // Draw text box
+    }
+
+    case ELEMENT_TYPES.TEXTBOX: {
       const width = element.width * zoomLevel;
       const height = element.height * zoomLevel;
-      
+
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(zoomedX - width/2, zoomedY - height/2, width, height);
-      ctx.strokeRect(zoomedX - width/2, zoomedY - height/2, width, height);
-      
-      // Draw text
+      ctx.fillRect(zoomedX - width / 2, zoomedY - height / 2, width, height);
+      ctx.strokeRect(zoomedX - width / 2, zoomedY - height / 2, width, height);
+
       if (element.text) {
         ctx.fillStyle = '#000000';
         ctx.font = `${12 * zoomLevel}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
-        // Simple text wrapping
+
         const words = element.text.split(' ');
         const lineHeight = 15 * zoomLevel;
         let line = '';
-        let y = zoomedY - height/2 + lineHeight;
-        
+        let y = zoomedY - height / 2 + lineHeight;
+
         for (let i = 0; i < words.length; i++) {
           const testLine = line + words[i] + ' ';
           const metrics = ctx.measureText(testLine);
-          
+
           if (metrics.width > width - 10) {
             ctx.fillText(line, zoomedX, y);
             line = words[i] + ' ';
             y += lineHeight;
-            
-            if (y > zoomedY + height/2 - lineHeight) break;
+            if (y > zoomedY + height / 2 - lineHeight) break;
           } else {
             line = testLine;
           }
         }
-        
+
         ctx.fillText(line, zoomedX, y);
       }
       break;
-      
-    case ELEMENT_TYPES.LINE:
-      // Draw simple line
+    }
+
+    case ELEMENT_TYPES.LINE: {
       ctx.beginPath();
       ctx.moveTo(zoomedX, zoomedY);
       ctx.lineTo(zoomedX + (element.width * zoomLevel), zoomedY);
       ctx.stroke();
       break;
-      
-    case ELEMENT_TYPES.RELATIONSHIP:
-      // Find source and target elements
+    }
+
+    case ELEMENT_TYPES.RELATIONSHIP: {
       const sourceEl = window.elements?.find(el => el.id === element.sourceId);
       const targetEl = window.elements?.find(el => el.id === element.targetId);
-      
+
       if (sourceEl && targetEl) {
         const sourceX = sourceEl.x * zoomLevel;
         const sourceY = sourceEl.y * zoomLevel;
         const targetX = targetEl.x * zoomLevel;
         const targetY = targetEl.y * zoomLevel;
-        
-        // Draw relationship line
+
         ctx.beginPath();
         ctx.moveTo(sourceX, sourceY);
         ctx.lineTo(targetX, targetY);
         ctx.strokeStyle = element.color || '#1677ff';
         ctx.stroke();
-        
-        // Draw relationship text if any
+
         if (element.text) {
           const midX = (sourceX + targetX) / 2;
           const midY = (sourceY + targetY) / 2;
-          
-          ctx.fillStyle = '#ffffff';
+
+          ctx.font = `${12 * zoomLevel}px Arial`;
           const textMetrics = ctx.measureText(element.text);
           const padding = 5 * zoomLevel;
-          ctx.fillRect(
-            midX - textMetrics.width/2 - padding,
-            midY - 10 * zoomLevel,
-            textMetrics.width + padding * 2,
-            20 * zoomLevel
-          );
-          
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(midX - textMetrics.width / 2 - padding, midY - 10 * zoomLevel, textMetrics.width + padding * 2, 20 * zoomLevel);
+
           ctx.fillStyle = '#000000';
-          ctx.font = `${12 * zoomLevel}px Arial`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(element.text, midX, midY);
         }
       }
       break;
-      
+    }
+
     default:
       break;
   }
-  
+
   ctx.restore();
 };
 
