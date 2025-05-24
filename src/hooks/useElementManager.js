@@ -8,25 +8,22 @@ export default function useElementManager(canvasRef) {
   const [selectedElements, setSelectedElements] = useState([]);
   const fileInputRef = useRef(null);
 
-  // Element management functions
   const addElement = (type) => (e) => {
-    if (e && e.preventDefault) {
-      e.preventDefault();
-    }
-    
+    if (e && e.preventDefault) e.preventDefault();
+
     const canvasRect = canvasRef?.current?.getBoundingClientRect();
     const centerX = canvasRect ? (canvasRect.width / 2) : 300;
     const centerY = canvasRect ? (canvasRect.height / 2) : 200;
-    
-    const newElement = { 
+
+    const newElement = {
       id: generateId(),
-      type, 
-      x: centerX, // Center in canvas
+      type,
+      x: centerX,
       y: centerY,
-      width: type === ELEMENT_TYPES.LINE ? 100 : 
-             type === ELEMENT_TYPES.TEXTBOX ? 150 : 
+      width: type === ELEMENT_TYPES.LINE ? 100 :
+             type === ELEMENT_TYPES.TEXTBOX ? 150 :
              type === ELEMENT_TYPES.CIRCLE ? 80 : undefined,
-      height: type === ELEMENT_TYPES.TEXTBOX ? 100 : 
+      height: type === ELEMENT_TYPES.TEXTBOX ? 100 :
               type === ELEMENT_TYPES.CIRCLE ? 80 : undefined,
       rotation: 0,
       color: '#000000',
@@ -37,117 +34,107 @@ export default function useElementManager(canvasRef) {
       profileImage: null,
       hidden: false
     };
-    
-    setElements(prevElements => [...prevElements, newElement]);
+
+    setElements(prev => [...prev, newElement]);
     setSelectedElements([newElement.id]);
     return newElement;
   };
 
   const updateElement = (id, updates) => {
-    setElements(elements.map(element => 
-      element.id === id ? { ...element, ...updates } : element
-    ));
+    setElements(prev =>
+      prev.map(el => el.id === id ? { ...el, ...updates } : el)
+    );
   };
 
   const removeElement = (id) => {
-    // Remove the element itself
-    setElements(elements.filter(element => element.id !== id));
-    
-    // Also remove any relationships connected to this element
-    setElements(prevElements => 
-      prevElements.filter(element => 
-        element.type !== ELEMENT_TYPES.RELATIONSHIP || 
-        (element.sourceId !== id && element.targetId !== id)
+    setElements(prev =>
+      prev.filter(el =>
+        el.id !== id &&
+        !(el.type === ELEMENT_TYPES.RELATIONSHIP &&
+          (el.sourceId === id || el.targetId === id))
       )
     );
-    
-    // Update selection state
-    setSelectedElements(prev => prev.filter(selectedId => selectedId !== id));
+    setSelectedElements(prev => prev.filter(sid => sid !== id));
   };
 
-  const createRelationship = (sourceId, targetId) => {
-    // Check if a relationship already exists between these elements
-    const relationshipExists = elements.some(el => 
-      el.type === ELEMENT_TYPES.RELATIONSHIP && 
-      ((el.sourceId === sourceId && el.targetId === targetId) || 
+  const createRelationship = (sourceId, targetId, relationshipType) => {
+    const circleCount = elements.filter(el => el.type === ELEMENT_TYPES.CIRCLE).length;
+    if (circleCount < 2) return;
+
+    const exists = elements.some(el =>
+      el.type === ELEMENT_TYPES.RELATIONSHIP &&
+      ((el.sourceId === sourceId && el.targetId === targetId) ||
        (el.sourceId === targetId && el.targetId === sourceId))
     );
-    
-    if (relationshipExists) {
-      return null; // Don't create duplicate relationships
-    }
-    
-    const newRelationship = {
+    if (exists) return;
+
+    const newRel = {
       id: generateId(),
       type: ELEMENT_TYPES.RELATIONSHIP,
       sourceId,
       targetId,
-      text: "",
-      color: "#1677ff",
+      text: relationshipType === 'child-of' ? 'child of' : '',
+      color: relationshipType === 'child-of' ? '#fa541c' : '#1677ff',
+      relationshipType: relationshipType,
+      directed: relationshipType === 'child-of',
       hidden: false
     };
-    
-    setElements([...elements, newRelationship]);
-    // return newRelationship;
+
+    setElements(prev => [...prev, newRel]);
   };
 
   const toggleElementVisibility = (id) => {
-    const element = elements.find(el => el.id === id);
-    if (element) {
-      updateElement(id, { hidden: !element.hidden });
+    const el = elements.find(e => e.id === id);
+    if (el) {
+      updateElement(id, { hidden: !el.hidden });
     }
   };
 
   const handleSelectElement = (id, options = {}) => {
     const { isErasing, relationshipMode } = options;
-    
+
+    if (id === null) {
+      setSelectedElements([]);
+      return;
+    }
+
     if (isErasing) {
       removeElement(id);
       return;
     }
-    
+
     const element = elements.find(el => el.id === id);
     if (!element) return;
-    
-    // Handling relationship mode
-    if (relationshipMode && element && element.type === ELEMENT_TYPES.CIRCLE) {
+
+    if (relationshipMode && element.type === ELEMENT_TYPES.CIRCLE) {
+      const characterCount = elements.filter(el => el.type === ELEMENT_TYPES.CIRCLE).length;
+      if (characterCount < 2) {
+        alert("You need at least 2 characters to create a relationship.");
+        return;
+      }
+
       if (selectedElements.includes(id)) {
-        // Deselect if already selected
-        setSelectedElements(prev => prev.filter(selectedId => selectedId !== id));
+        setSelectedElements(prev => prev.filter(sid => sid !== id));
       } else {
-        // Add to selection or replace single selection
-        const newSelection = [...selectedElements, id].slice(-2); // Keep only last 2 selections
+        const newSelection = [...selectedElements, id].slice(-2);
         setSelectedElements(newSelection);
-        
-        // If we have 2 circles selected, create a relationship
         if (newSelection.length === 2) {
           const [sourceId, targetId] = newSelection;
-          
-          // Check if both are circles
           const source = elements.find(el => el.id === sourceId);
           const target = elements.find(el => el.id === targetId);
-          
           if (source?.type === ELEMENT_TYPES.CIRCLE && target?.type === ELEMENT_TYPES.CIRCLE) {
-            // Create relationship
             createRelationship(sourceId, targetId);
-            // Reset selection
             setSelectedElements([]);
           }
         }
       }
-    } else if (activeTool === 'cursor') {
-      // Normal selection mode (single selection)
-      if (selectedElements.includes(id)) {
-        setSelectedElements([]);
-      } else {
-        setSelectedElements([id]);
-      }
+    } else {
+      // ✅ Always select (don't toggle off)
+      setSelectedElements([id]);
     }
   };
 
-  // Add image upload functionality
   const triggerImageUpload = (elementId) => {
-    // Create a file input if it doesn't exist
     if (!fileInputRef.current) {
       const input = document.createElement('input');
       input.type = 'file';
@@ -156,45 +143,41 @@ export default function useElementManager(canvasRef) {
       document.body.appendChild(input);
       fileInputRef.current = input;
     }
-    
-    // Set up the file input change handler
+
     fileInputRef.current.onchange = (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
       const reader = new FileReader();
       reader.onload = (event) => {
         updateElement(elementId, { profileImage: event.target.result });
       };
       reader.readAsDataURL(file);
     };
-    
-    // Trigger the file input click
+
     fileInputRef.current.click();
   };
 
-  // Local storage functions for saving/loading
   const saveProject = (project) => {
     try {
       localStorage.setItem('characterDiagram', JSON.stringify(project));
       return true;
-    } catch (error) {
-      console.error('Failed to save project:', error);
+    } catch (e) {
+      console.error('Failed to save project', e);
       return false;
     }
   };
 
   const loadProject = () => {
     try {
-      const savedProject = localStorage.getItem('characterDiagram');
-      if (savedProject) {
-        const parsedProject = JSON.parse(savedProject);
-        setElements(parsedProject.elements || []);
-        return parsedProject.name;
+      const saved = localStorage.getItem('characterDiagram');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setElements(parsed.elements || []);
+        return parsed.name;
       }
       return null;
-    } catch (error) {
-      console.error('Failed to load project:', error);
+    } catch (e) {
+      console.error('Failed to load project', e);
       return null;
     }
   };

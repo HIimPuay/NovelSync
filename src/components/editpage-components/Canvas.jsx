@@ -173,6 +173,7 @@ const Canvas = ({
   // State for dragging
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [draggedElementIds, setDraggedElementIds] = useState([]);
   
   // Initialize canvas on mount
   useEffect(() => {
@@ -295,6 +296,7 @@ const Canvas = ({
         
       case ELEMENT_TYPES.RELATIONSHIP:
         // Not directly selectable/draggable from canvas
+        
         return false;
         
       default:
@@ -304,7 +306,7 @@ const Canvas = ({
   
   // Handle mouse down for starting drag
   const handleMouseDown = (e) => {
-    if (isErasing || relationshipMode) return;
+    if (isErasing) return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -319,14 +321,18 @@ const Canvas = ({
     );
     
     if (clickedElement) {
-      // Select the element if it's not already selected
-      if (!selectedElements.includes(clickedElement.id)) {
-        handleSelectElement(clickedElement.id, { isErasing, relationshipMode });
-      }
-      
-      // Start dragging
+      // Start dragging the clicked element
       setIsDragging(true);
       setDragStart({ x, y });
+      
+      // If the clicked element is not already selected, select only this element
+      if (!selectedElements.includes(clickedElement.id)) {
+        handleSelectElement(clickedElement.id, { isErasing, relationshipMode });
+        setDraggedElementIds([clickedElement.id]);
+      } else {
+        // If already selected, keep current selection and drag all selected elements
+        setDraggedElementIds([...selectedElements]);
+      }
       
       // Close any open dropdowns
       if (handleCanvasClick) {
@@ -335,6 +341,7 @@ const Canvas = ({
     } else {
       // Clear selection if clicking empty space
       handleSelectElement(null);
+      setDraggedElementIds([]);
       
       // Close any open dropdowns
       if (handleCanvasClick) {
@@ -344,48 +351,48 @@ const Canvas = ({
   };
   
   // Handle mouse move for dragging
-  const handleMouseMove = (e) => {
-    if (!isDragging || !selectedElements.length || isErasing || relationshipMode) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoomLevel;
-    const y = (e.clientY - rect.top) / zoomLevel;
-    
-    // Calculate distance moved
-    const dx = x - dragStart.x;
-    const dy = y - dragStart.y;
-    
-    // Update position for all selected elements
-    selectedElements.forEach(id => {
-      const element = elements.find(el => el.id === id);
-      if (element && element.type !== ELEMENT_TYPES.RELATIONSHIP) {
-        updateElement(id, {
-          x: element.x + dx,
-          y: element.y + dy
-        });
-      }
-    });
-    
-    // Update starting position for next move
-    setDragStart({ x, y });
-  };
+const handleMouseMove = (e) => {
+  if (!isDragging || draggedElementIds.length === 0 || isErasing || relationshipMode) return;
+
+  const canvas = canvasRef.current;
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / zoomLevel;
+  const y = (e.clientY - rect.top) / zoomLevel;
+
+  // Calculate distance moved
+  const dx = x - dragStart.x;
+  const dy = y - dragStart.y;
+
+  // Update drag start for the next move
+  setDragStart({ x, y });
+
+  // Update position for all dragged elements
+  draggedElementIds.forEach((id) => {
+    const element = elements.find((el) => el.id === id);
+    if (element) {
+      updateElement(id, {
+        x: element.x + dx,
+        y: element.y + dy,
+      });
+    }
+  });
+};
+
   
   // Handle mouse up to end dragging
   const handleMouseUp = () => {
-    setIsDragging(false);
+    if (isDragging) {
+      setIsDragging(false);
+      setDraggedElementIds([]);
+    }
   };
+  
   
   // Handle mouse out to end dragging if cursor leaves canvas
   const handleMouseOut = () => {
     setIsDragging(false);
-  };
-  
-  // Handle canvas click for selection
-  const handleCanvasClicked = (e) => {
-    // Already handled in mouseDown
   };
   
   return (
@@ -393,11 +400,11 @@ const Canvas = ({
       <canvas
         ref={canvasRef}
         className="diagram-canvas"
-        onClick={handleCanvasClicked}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseOut={handleMouseOut}
+        
         style={{ cursor: isDragging ? 'grabbing' : 'default' }}
       />
     </div>

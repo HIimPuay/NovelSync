@@ -5,13 +5,8 @@ export const ELEMENT_TYPES = {
   LINE: 'line',
   RELATIONSHIP: 'relationship'
 };
-  
-  // Character types for styling
-  export const CHARACTER_TYPES = {
-    HERO: 'hero',
-    VILLAIN: 'villain',
-    SUPPORTER: 'supporter',
-    NEUTRAL: 'neutral'
-  };
 
-  
+export const RELATIONSHIP_TYPES = {
+  GENERIC: 'generic',
+  CHILD_OF: 'child-of'
+};

@@ -23,7 +23,9 @@ function Toolbar({
   toggleEraser,
   toggleRelationshipMode,
   handleZoomIn,
-  handleZoomOut
+  handleZoomOut,
+  setRelationshipType,
+  relationshipType
 }) {
   return (
     <div className="toolbar">
@@ -74,6 +76,18 @@ function Toolbar({
       >
         <Link size={24} />
       </button>
+      {relationshipMode && (
+        <select 
+          value={relationshipType} 
+          onChange={(e) => setRelationshipType(e.target.value)}
+        >
+          <option value="generic">Generic</option>
+          <option value="child-of">Child of</option>
+        </select>
+      )}
+
+
+
       
       {/* <button 
         className={`tool-button eraser-icon ${isErasing ? "active eraser-active" : ""}`} 

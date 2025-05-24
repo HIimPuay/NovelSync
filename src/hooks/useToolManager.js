@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import '../components/styles/editpage.css';
 
-export default function useToolManager() {
+export default function useToolManager(canvasRef, relationshipType = 'generic') {
   const [activeTool, setActiveTool] = useState('cursor');
   const [zoomLevel, setZoomLevel] = useState(1);
   const [editOpen, setEditOpen] = useState(false);
@@ -44,7 +44,7 @@ export default function useToolManager() {
   const toggleRelationshipMode = () => {
     setRelationshipMode(!relationshipMode);
     setTool(relationshipMode ? 'cursor' : 'relationship');
-    setSelectedElements([]);
+    
   };
 
   // Canvas operations
@@ -72,3 +72,4 @@ export default function useToolManager() {
     handleZoomOut,
   };
 }
+

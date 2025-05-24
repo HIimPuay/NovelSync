@@ -9,9 +9,10 @@ import useToolManager from '../hooks/useToolManager';
 import ProjectName from '../components/editpage-components/ProjectName';
 import Toolbar from '../components/editpage-components/Toolbar';
 import EditDropdown from '../components/editpage-components/EditDropdown';
-import StyleDropdown from '../components/editpage-components/StyleDropdown';
+import StyleDropdown from '../components/editpage-components/RelationDropdown';
 import Canvas from '../components/editpage-components/Canvas';
 import PropertyPanel from '../components/editpage-components/PropertyPanel';
+import RelationshipLayer from '../components/editpage-components/RelationshipLayer';
 
 function EditPage() {
   const canvasRef = useRef(null);
@@ -19,6 +20,8 @@ function EditPage() {
   const [isStyleDropdownOpen, setIsStyleDropdownOpen] = useState(false);
   const [projectName, setProjectName] = useState("Untitled Character Diagram");
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [relationshipType, setRelationshipType] = useState("generic");
+
   
   const {
     elements,
@@ -60,6 +63,8 @@ function EditPage() {
     // Initialize canvas and setup global event handlers
     
     // Handle escape key to clear selection
+
+    
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         clearSelection();
@@ -191,6 +196,9 @@ function EditPage() {
           resetZoom={resetZoom}
           onSave={handleSave}
           onLoad={handleLoad}
+          relationshipType={relationshipType}
+          setRelationshipType={setRelationshipType}
+         
         />
       </div>
       
@@ -198,6 +206,15 @@ function EditPage() {
         isOpen={isEditDropdownOpen}
         addElement={handleAddElement} 
       />
+
+      <RelationshipLayer
+        elements={elements}
+        selectedElements={selectedElements}
+        handleSelectElement={handleSelectElement}
+        updateElement={updateElement}
+        removeElement={removeElement} // ✅ อย่าลืมส่ง
+      />
+
       
       <StyleDropdown 
         isOpen={isStyleDropdownOpen}

@@ -91,19 +91,23 @@ function DraggableElement({
       onStop={handleDragStop}
     >
       <div 
-        ref={nodeRef} 
-        className={`element ${element.type} 
-                    ${isSelected ? "selected" : ""} 
-                    ${isErasing ? "eraser-active" : ""} 
-                    ${isRelationshipCandidate ? "relationship-candidate" : ""}`} 
-        onClick={() => handleSelectElement(element.id)}
-        style={{ 
-          transform: `rotate(${element.rotation || 0}deg)`, 
-          color: element.color
-        }}
-      >
-        {getElementContent()}
-      </div>
+  ref={nodeRef} 
+  className={`element ${element.type} 
+              ${isSelected ? "selected" : ""} 
+              ${isErasing ? "eraser-active" : ""} 
+              ${isRelationshipCandidate ? "relationship-candidate" : ""}`} 
+  onClick={(e) => {
+    e.stopPropagation(); // <-- ป้องกัน bubble ไป canvas
+    handleSelectElement(element.id);
+  }}
+  style={{ 
+    transform: `rotate(${element.rotation || 0}deg)`, 
+    color: element.color
+  }}
+>
+  {getElementContent()}
+</div>
+
     </Draggable>
   );
 }
