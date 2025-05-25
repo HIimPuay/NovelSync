@@ -102,28 +102,70 @@ const PropertyPanel = ({
         );
         
       case ELEMENT_TYPES.TEXTBOX:
-        return (
-          <>
-            <div className="property-field">
-              <label>Text:</label>
-              <textarea 
-                value={selectedElement.text || ''} 
-                onChange={handleTextChange} 
-                rows={4}
-                placeholder="Enter text here"
-              />
-            </div>
-            
-            <div className="property-field">
-              <label>Color:</label>
-              <input 
-                type="color" 
-                value={selectedElement.color || '#000000'} 
-                onChange={handleColorChange}
-              />
-            </div>
-          </>
-        );
+      return (
+        <>
+          <div className="property-field">
+            <label>Text:</label>
+            <textarea 
+              value={selectedElement.text || ''} 
+              onChange={handleTextChange} 
+              rows={4}
+              placeholder="Enter text here"
+              style={{ resize: 'none' }}
+            />
+          </div>
+
+          <div className="property-field">
+            <label>Font Size:</label>
+            <input
+              type="number"
+              min={10}
+              max={72}
+              value={selectedElement.fontSize || 14}
+              onChange={(e) => updateElement(selectedElement.id, { fontSize: Number(e.target.value) })}
+            />
+          </div>
+      
+          <div className="property-field">
+            <label>Box color:</label>
+            <input 
+              type="color"
+              value={selectedElement.color || '#000000'}
+              onChange={handleColorChange}
+            />
+          </div>
+      
+          <div className="property-field">
+            <label>Text color:</label>
+            <input 
+              type="color"
+              value={selectedElement.fontColor || '#000000'}
+              onChange={(e) => updateElement(selectedElement.id, { fontColor: e.target.value })}
+            />
+          </div>
+      
+          <div className="property-field">
+            <label>Width:</label>
+            <input 
+              type="number" 
+              value={selectedElement.width || 150}
+              onChange={(e) => updateElement(selectedElement.id, { width: Number(e.target.value) })}
+              min="50"
+            />
+          </div>
+      
+          <div className="property-field">
+            <label>Height:</label>
+            <input 
+              type="number" 
+              value={selectedElement.height || 100}
+              onChange={(e) => updateElement(selectedElement.id, { height: Number(e.target.value) })}
+              min="30"
+            />
+          </div>
+        </>
+      );
+
         
       case ELEMENT_TYPES.LINE:
         return (

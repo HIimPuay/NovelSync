@@ -49,16 +49,31 @@ function DraggableElement({
         
       case ELEMENT_TYPES.TEXTBOX:
         return (
-          <textarea 
-            className='text-box' 
-            value={element.text || ''} 
-            onChange={handleTextChange} 
-            onClick={(e) => e.stopPropagation()}
-            placeholder="Enter text here..." 
-            style={{ 
-              height: element.height ? `${element.height}px` : 'auto'
-            }}
+          <textarea
+           className="text-box"
+           value={element.text || ''}
+           onChange={(e) => {
+             updateElement(element.id, {
+               text: e.target.value,
+               height: e.target.scrollHeight // ✅ ปรับขนาดตามเนื้อหา
+             });
+           }}
+           onClick={(e) => e.stopPropagation()}
+           placeholder="Enter text here..."
+           style={{
+             height: element.height ? `${element.height}px` : 'auto',
+             color: element.color || '#000000', // ✅ สีข้อความ
+             width: element.width ? `${element.width}px` : 'auto',
+              resize: 'none', // ✅ ปิดการปรับขนาด
+              overflow: 'auto',
+              padding: '8px',
+              border:isSelected ? '2px solid #1677ff' : '1px solid #ccc',
+              borderRadius: '4px',
+              
+        
+          }}    
           />
+
         );
         
       case ELEMENT_TYPES.IMAGE:

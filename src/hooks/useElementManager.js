@@ -27,6 +27,8 @@ export default function useElementManager(canvasRef) {
               type === ELEMENT_TYPES.CIRCLE ? 80 : undefined,
       rotation: 0,
       color: '#000000',
+      fontColor: '#000000',
+      fontSize: 16,
       text: type === ELEMENT_TYPES.TEXTBOX ? 'Enter text here' : '',
       characterType: type === ELEMENT_TYPES.CIRCLE ? 'neutral' : undefined,
       details: type === ELEMENT_TYPES.CIRCLE ? '' : undefined,

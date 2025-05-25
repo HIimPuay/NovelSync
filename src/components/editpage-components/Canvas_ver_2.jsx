@@ -2,23 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ELEMENT_TYPES } from '../../constants/elementTypes';
 import '../styles/editpage.css';
 
-const splitLongWordToFit = (ctx, word, maxWidth) => {
-  const parts = [];
-  let part = '';
-  for (let i = 0; i < word.length; i++) {
-    const test = part + word[i];
-    if (ctx.measureText(test).width > maxWidth) {
-      if (part.length === 0) break;
-      parts.push(part);
-      part = word[i];
-    } else {
-      part = test;
-    }
-  }
-  if (part) parts.push(part);
-  return parts;
-};
-
 // Helper function to render elements
 const renderElement = (ctx, element, isSelected, zoomLevel) => {
   if (element.hidden) return;
@@ -86,62 +69,51 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
     }
 
     case ELEMENT_TYPES.TEXTBOX: {
-      const width = element.width * zoomLevel;
-      const height = element.height * zoomLevel;
-      const padding = 8 * zoomLevel;
       const fontSize = (element.fontSize || 14) * zoomLevel;
       const lineHeight = fontSize * 1.4;
+      const padding = 8 * zoomLevel;
 
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(zoomedX - width / 2, zoomedY - height / 2, width, height);
-      ctx.strokeRect(zoomedX - width / 2, zoomedY - height / 2, width, height);
+      ctx.font = `${fontSize}px Arial`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = element.fontColor || '#000000';
 
-      if (element.text) {
-        ctx.font = `${fontSize}px Arial`;
-        ctx.fillStyle = element.fontColor || '#000000';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
+      const words = element.text.split(/\s+/);
+      let lines = [];
+      let line = '';
+      let maxWidth = 0;
 
-        const words = element.text.split(/\s+/);
-        const maxWidth = width - padding * 2;
-        let y = zoomedY - height / 2 + padding;
-        let line = '';
-
-        for (let i = 0; i < words.length; i++) {
-          const word = words[i];
-          const testLine = line + word + ' ';
-          const testWidth = ctx.measureText(testLine.trim()).width;
-
-          if (testWidth > maxWidth) {
-            if (ctx.measureText(word).width > maxWidth) {
-              const parts = splitLongWordToFit(ctx, word, maxWidth);
-              ctx.fillText(line.trim(), zoomedX - width / 2 + padding, y);
-              y += lineHeight;
-              parts.forEach((part) => {
-                if (y + lineHeight > zoomedY + height / 2 - padding) return;
-                ctx.fillText(part.trim(), zoomedX - width / 2 + padding, y);
-                y += lineHeight;
-              });
-              line = '';
-            } else {
-              ctx.fillText(line.trim(), zoomedX - width / 2 + padding, y);
-              line = word + ' ';
-              y += lineHeight;
-            }
-            if (y + lineHeight > zoomedY + height / 2 - padding) break;
-          } else {
-            line = testLine;
-          }
-        }
-        if (y + lineHeight <= zoomedY + height / 2 - padding) {
-          ctx.fillText(line.trim(), zoomedX - width / 2 + padding, y);
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const testWidth = ctx.measureText(testLine.trim()).width;
+        if (testWidth > 200) {
+          lines.push(line.trim());
+          maxWidth = Math.max(maxWidth, ctx.measureText(line.trim()).width);
+          line = words[i] + ' ';
+        } else {
+          line = testLine;
         }
       }
+      if (line.trim()) {
+        lines.push(line.trim());
+        maxWidth = Math.max(maxWidth, ctx.measureText(line.trim()).width);
+      }
+
+      const boxWidth = maxWidth + padding * 2;
+      const boxHeight = lines.length * lineHeight + padding * 2;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(zoomedX - boxWidth / 2, zoomedY - boxHeight / 2, boxWidth, boxHeight);
+      ctx.strokeRect(zoomedX - boxWidth / 2, zoomedY - boxHeight / 2, boxWidth, boxHeight);
+
+      ctx.fillStyle = element.fontColor || '#000000';
+      lines.forEach((ln, idx) => {
+        const y = zoomedY - boxHeight / 2 + padding + idx * lineHeight;
+        ctx.fillText(ln, zoomedX - boxWidth / 2 + padding, y);
+      });
+
       break;
     }
-
-
-
 
     case ELEMENT_TYPES.LINE: {
       ctx.beginPath();
@@ -206,232 +178,159 @@ const Canvas = ({
   handleCanvasClick 
 }) => {
   const canvasContext = useRef(null);
-  
-  // State for dragging
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [draggedElementIds, setDraggedElementIds] = useState([]);
-  
-  // Initialize canvas on mount
+
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     canvasContext.current = ctx;
-    
-    // Set canvas dimensions
+
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    
-    // Make elements globally available for rendering relationships
+
     window.elements = elements;
-    
-    // Initial render
+
     renderCanvas();
-    
-    // Handle resize
+
     const handleResize = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
       renderCanvas();
     };
-    
+
     window.addEventListener('resize', handleResize);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
+    return () => window.removeEventListener('resize', handleResize);
   }, [canvasRef]);
-  
-  // Re-render when elements or selection changes
+
   useEffect(() => {
     window.elements = elements;
     renderCanvas();
   }, [elements, selectedElements, zoomLevel]);
-  
-  // Function to render all elements on the canvas
+
   const renderCanvas = () => {
     if (!canvasRef.current || !canvasContext.current) return;
-    
     const canvas = canvasRef.current;
     const ctx = canvasContext.current;
-    
-    // Clear canvas
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw grid (optional)
     drawGrid(ctx, canvas.width, canvas.height, zoomLevel);
-    
-    // Render elements in order
+
     elements.forEach(element => {
-      renderElement(
-        ctx, 
-        element, 
-        selectedElements.includes(element.id),
-        zoomLevel
-      );
+      renderElement(ctx, element, selectedElements.includes(element.id), zoomLevel);
     });
   };
-  
-  // Draw a grid on the canvas
+
   const drawGrid = (ctx, width, height, zoom) => {
     const gridSize = 20 * zoom;
-    
     ctx.save();
     ctx.strokeStyle = '#f0f0f0';
     ctx.lineWidth = 0.5;
-    
-    // Draw vertical lines
+
     for (let x = 0; x < width; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, height);
       ctx.stroke();
     }
-    
-    // Draw horizontal lines
     for (let y = 0; y < height; y += gridSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);
       ctx.stroke();
     }
-    
     ctx.restore();
   };
-  
-  // Function to check if a point is within an element
+
   const isPointInElement = (x, y, element) => {
     if (element.hidden) return false;
-    
     switch (element.type) {
       case ELEMENT_TYPES.CIRCLE:
         const radius = element.width / 2;
-        const distance = Math.sqrt(
-          Math.pow(element.x - x, 2) + Math.pow(element.y - y, 2)
-        );
-        return distance <= radius;
-        
+        return Math.sqrt((element.x - x) ** 2 + (element.y - y) ** 2) <= radius;
       case ELEMENT_TYPES.TEXTBOX:
         return (
-          x >= element.x - element.width/2 &&
-          x <= element.x + element.width/2 &&
-          y >= element.y - element.height/2 &&
-          y <= element.y + element.height/2
+          x >= element.x - element.width / 2 &&
+          x <= element.x + element.width / 2 &&
+          y >= element.y - element.height / 2 &&
+          y <= element.y + element.height / 2
         );
-        
       case ELEMENT_TYPES.LINE:
-        const lineEndX = element.x + element.width;
-        // For simplicity, we'll consider a small area around the line
         return (
           x >= element.x - 5 &&
-          x <= lineEndX + 5 &&
+          x <= element.x + element.width + 5 &&
           y >= element.y - 5 &&
           y <= element.y + 5
         );
-        
-      case ELEMENT_TYPES.RELATIONSHIP:
-        // Not directly selectable/draggable from canvas
-        
-        return false;
-        
       default:
         return false;
     }
   };
-  
-  // Handle mouse down for starting drag
+
   const handleMouseDown = (e) => {
     if (isErasing) return;
-    
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoomLevel;
     const y = (e.clientY - rect.top) / zoomLevel;
-    
-    // Find clicked element (in reverse order to get topmost first)
-    const clickedElement = [...elements].reverse().find(element => 
-      isPointInElement(x, y, element)
-    );
-    
+
+    const clickedElement = [...elements].reverse().find(el => isPointInElement(x, y, el));
+
     if (clickedElement) {
-      // Start dragging the clicked element
       setIsDragging(true);
       setDragStart({ x, y });
-      
-      // If the clicked element is not already selected, select only this element
       if (!selectedElements.includes(clickedElement.id)) {
         handleSelectElement(clickedElement.id, { isErasing, relationshipMode });
         setDraggedElementIds([clickedElement.id]);
       } else {
-        // If already selected, keep current selection and drag all selected elements
         setDraggedElementIds([...selectedElements]);
       }
-      
-      // Close any open dropdowns
-      if (handleCanvasClick) {
-        handleCanvasClick();
-      }
+      if (handleCanvasClick) handleCanvasClick();
     } else {
-      // Clear selection if clicking empty space
       handleSelectElement(null);
       setDraggedElementIds([]);
-      
-      // Close any open dropdowns
-      if (handleCanvasClick) {
-        handleCanvasClick();
-      }
+      if (handleCanvasClick) handleCanvasClick();
     }
   };
-  
-  // Handle mouse move for dragging
-const handleMouseMove = (e) => {
-  if (!isDragging || draggedElementIds.length === 0 || isErasing || relationshipMode) return;
 
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+  const handleMouseMove = (e) => {
+    if (!isDragging || draggedElementIds.length === 0 || isErasing || relationshipMode) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoomLevel;
+    const y = (e.clientY - rect.top) / zoomLevel;
+    const dx = x - dragStart.x;
+    const dy = y - dragStart.y;
+    setDragStart({ x, y });
 
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / zoomLevel;
-  const y = (e.clientY - rect.top) / zoomLevel;
+    draggedElementIds.forEach((id) => {
+      const element = elements.find((el) => el.id === id);
+      if (element) {
+        updateElement(id, {
+          x: element.x + dx,
+          y: element.y + dy,
+        });
+      }
+    });
+  };
 
-  // Calculate distance moved
-  const dx = x - dragStart.x;
-  const dy = y - dragStart.y;
-
-  // Update drag start for the next move
-  setDragStart({ x, y });
-
-  // Update position for all dragged elements
-  draggedElementIds.forEach((id) => {
-    const element = elements.find((el) => el.id === id);
-    if (element) {
-      updateElement(id, {
-        x: element.x + dx,
-        y: element.y + dy,
-      });
-    }
-  });
-};
-
-  
-  // Handle mouse up to end dragging
   const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
       setDraggedElementIds([]);
     }
   };
-  
-  
-  // Handle mouse out to end dragging if cursor leaves canvas
+
   const handleMouseOut = () => {
     setIsDragging(false);
   };
-  
+
   return (
     <div className="canvas-container">
       <canvas
@@ -441,7 +340,6 @@ const handleMouseMove = (e) => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseOut={handleMouseOut}
-        
         style={{ cursor: isDragging ? 'grabbing' : 'default' }}
       />
     </div>

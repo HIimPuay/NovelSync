@@ -222,19 +222,26 @@
   overflow: hidden;
 }
 
+
 .text-box {
-  width: 100%;
-  height: 100%;
-  min-height: 100px;
-  padding: 8px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  resize: both;
-  font-family: inherit;
+  resize: both;              /* ✅ ให้ผู้ใช้ขยายกล่องได้ */
+  overflow: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  width: 150px;
+  min-height: 50px;
+  padding: 6px 8px;
   font-size: 14px;
-  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+  outline: none;
 }
+
 
 .textbox.selected .text-box {
   border-color: #1677ff;
