@@ -752,47 +752,44 @@ canvas {
 }
 
 /* Relationship Layer Styles */
-.toolbar select {
-  margin-left: 8px;
-  padding: 4px 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: white;
-  color: #333;
-  outline: none;
-  height: 34px;
-  vertical-align: middle;
-  transition: border 0.2s ease;
+.relationships-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Keep none here so it doesn't block canvas clicks */
+  z-index: 5;
 }
 
-.toolbar select:focus {
+.relationship-line {
+  cursor: pointer;
+  transition: stroke-width 0.2s ease;
+  pointer-events: auto; /* Add auto here so the line itself receives clicks */
+}
+
+.relationship-line.selected {
+  /* No specific style here, selection is handled by strokeWidth */
+}
+
+.relationship-label-container {
+  overflow: visible;
+  pointer-events: auto; /* Allow interaction with the input */
+}
+
+.relationship-label {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 12px;
+  width: 100%;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s ease;
+}
+
+.relationship-label.editing {
   border-color: #1677ff;
-}
-
-.toolbar option {
-  background-color: white;
-  color: #333;
-}
-.toolbar select {
-  margin-left: 8px;
-  padding: 4px 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: white;
-  color: #333;
-  outline: none;
-  height: 34px;
-  vertical-align: middle;
-  transition: border 0.2s ease;
-}
-
-.toolbar select:focus {
-  border-color: #1677ff;
-}
-
-.toolbar option {
-  background-color: white;
-  color: #333;
+  background-color: #fff;
 }

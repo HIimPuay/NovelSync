@@ -206,14 +206,15 @@ const PropertyPanel = ({
               />
             </div>
             
-            <div className="property-field">
+            {/* Hide Line Color for relationships for simplicity */}
+            {/* <div className="property-field">
               <label>Line Color:</label>
               <input 
                 type="color" 
                 value={selectedElement.color || '#1677ff'} 
                 onChange={handleColorChange}
               />
-            </div>
+            </div> */}
           </>
         );
         
@@ -232,21 +233,24 @@ const PropertyPanel = ({
       
       {renderFields()}
       
-      <div className="property-actions">
-        <button 
-          className="action-button visibility-toggle"
-          onClick={() => toggleElementVisibility(selectedElement.id)}
-        >
-          {selectedElement.hidden ? 'Show Element' : 'Hide Element'}
-        </button>
-        
-        <button 
-          className="action-button delete-button"
-          onClick={() => removeElement(selectedElement.id)}
-        >
-          Delete Element
-        </button>
-      </div>
+      {/* Only show general actions if not a relationship */}
+      {selectedElement.type !== ELEMENT_TYPES.RELATIONSHIP && (
+        <div className="property-actions">
+          <button 
+            className="action-button visibility-toggle"
+            onClick={() => toggleElementVisibility(selectedElement.id)}
+          >
+            {selectedElement.hidden ? 'Show Element' : 'Hide Element'}
+          </button>
+          
+          <button 
+            className="action-button delete-button"
+            onClick={() => removeElement(selectedElement.id)}
+          >
+            Delete Element
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,7 @@ function RelationshipLayer({
   selectedElements,
   handleSelectElement,
   updateElement,
-  removeElement // ✅ เพิ่มเข้ามา
+  removeElement
 }) {
   const getElementById = (id) => elements.find(el => el.id === id);
 
@@ -39,6 +39,15 @@ function RelationshipLayer({
         orient="auto">
         <polygon points="0 0, 10 3.5, 0 7" fill="#1677ff" />
       </marker>
+      <marker
+        id="family-arrowhead"
+        markerWidth="10"
+        markerHeight="7"
+        refX="9"
+        refY="3.5"
+        orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#fa541c" />
+      </marker>
     </defs>
   );
 
@@ -61,8 +70,7 @@ function RelationshipLayer({
           
           const isChild = relationship.relationshipType === 'child-of';
           const color = isChild ? '#fa541c' : '#1677ff';
-          const label = relationship.text || (isChild ? 'child of' : '');
-
+          const markerId = isChild ? 'family-arrowhead' : 'arrowhead';
 
           return (
             <g key={relationship.id}>
@@ -71,9 +79,9 @@ function RelationshipLayer({
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke={relationship.color || "#1677ff"}
+                stroke={color}
                 strokeWidth={isSelected ? 3 : 2}
-                markerEnd={relationship.directed ? "url(#arrowhead)" : ""}
+                markerEnd={relationship.directed ? `url(#${markerId})` : ""}
                 className={`relationship-line ${isSelected ? 'selected' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -81,28 +89,26 @@ function RelationshipLayer({
                 }}
               />
 
-              {(relationship.text || isSelected) && (
-                <foreignObject
-                  x={midX - 60}
-                  y={isVertical ? midY - labelOffset : midY - 15}
-                  width={120}
-                  height={30}
-                  className="relationship-label-container"
-                >
-                  <input
-                    type="text"
-                    value={relationship.text || ''}
-                    placeholder="Relationship type"
-                    className={`relationship-label ${isSelected ? 'editing' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectElement(relationship.id);
-                    }}
-                    onChange={(e) => updateElement(relationship.id, { text: e.target.value })}
-                    readOnly={!isSelected}
-                  />
-                </foreignObject>
-              )}
+              <foreignObject
+                x={midX - 60}
+                y={midY - 15}
+                width={120}
+                height={30}
+                className="relationship-label-container"
+              >
+                <input
+                  type="text"
+                  value={relationship.text || ''}
+                  placeholder="Relationship type"
+                  className={`relationship-label ${isSelected ? 'editing' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectElement(relationship.id);
+                  }}
+                  onChange={(e) => updateElement(relationship.id, { text: e.target.value })}
+                  readOnly={!isSelected}
+                />
+              </foreignObject>
 
               {isSelected && (
                 <foreignObject
@@ -115,7 +121,7 @@ function RelationshipLayer({
                     className="relationship-delete-btn"
                     onClick={(e) => {
                       e.stopPropagation();
-                      removeElement(relationship.id); // ✅ เรียกใช้จริง
+                      removeElement(relationship.id);
                     }}
                   >
                     ×
