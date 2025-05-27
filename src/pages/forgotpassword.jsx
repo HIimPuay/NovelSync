@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {Link} from "react-router-dom";
-import "../components/styles/forgotpassword.css";
+import "../components/styles/login.css";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -21,9 +21,10 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="forgot-password-container">
-      <h2>Forgot Password</h2>
-      <form onSubmit={handleSubmit} className="forgot-password-form">
+    <div className="login-container">
+    <div className="login-box">
+      <form onSubmit={handleSubmit} className="form-group">
+        <h2>Forgot Password</h2>
         <label htmlFor="email">Email Address:</label>
         <input
           type="email"
@@ -47,10 +48,11 @@ function ForgotPassword() {
           className="box-input"
           
         />
-        <button className="back-btn" type="submit">Reset password</button>
-      <Link to="/login"><button className="login-btn">back</button></Link>
+        <button className="login-btn" type="submit">Reset password</button>
+      <Link to="/login"><button className="back-btn">back</button></Link>
       </form>
       {message && <p className="message">{message}</p>}
+    </div>
     </div>
   );
 }

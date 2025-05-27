@@ -45,6 +45,7 @@
 
   .form-group {
     width: 100%;
+    
   }
 
   .form-group h2 {
@@ -58,7 +59,8 @@
   .form-group form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 2px;
+    
   }
 
   .form-group label {
@@ -99,6 +101,7 @@
     background-color: var(--input-bg);
     font-size: 16px;
     transition: all 0.2s;
+    color: var(--text-main);
   }
 
   .form-group input:focus {
@@ -137,7 +140,7 @@
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s;
     width: 100%;
-    margin-top: 8px;
+    margin-top: 20px;
   }
 
   .login-btn:hover {
@@ -149,15 +152,24 @@
   }
 
   .back-btn {
-    background-color: transparent;
-    color: var(--text-light);
-    border: 1px solid var(--border-color);
-    margin-top: 16px;
+    background-color: var(--primary-color);
+    color: var(--text-white);
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    width: 100%;
+    margin-top: 10px;
   }
 
   .back-btn:hover {
-    background-color: var(--input-bg);
-    color: var(--text-main);
+    background-color: var(--primary-hover);
+  }
+  .back-btn:active {
+    transform: scale(0.98);
   }
 
   .form-group p {
