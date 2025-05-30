@@ -46,18 +46,18 @@ function Register({ onLogin }) {
                 <div className="form-group">
                     <h2>Sign up</h2>
                     <form onSubmit={handleSubmit}>
+                        <label>Username</label>
+                        <input 
+                            type="text" 
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)} 
+                            required 
+                        />
                         <label>Email</label>
                         <input 
                             type="email" 
                             value={email} 
                             onChange={(e) => setEmail(e.target.value)} 
-                            required 
-                        />
-                        <label>User name</label>
-                        <input 
-                            type="text" 
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)} 
                             required 
                         />
                         <label>Password</label>
