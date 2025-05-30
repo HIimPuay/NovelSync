@@ -33,7 +33,7 @@ function Login({ onLogin }) {
 
             // Call onLogin to update the app state
             onLogin({ user_id, email });
-
+            // Redirect to home page
             // Redirect to home page
             navigate('/');
         } catch (err) {
