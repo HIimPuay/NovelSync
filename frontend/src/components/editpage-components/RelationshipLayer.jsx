@@ -13,6 +13,37 @@ function RelationshipLayer({
 }) {
   const getElementById = (id) => elements.find(el => el.id === id);
 
+  // ฟังก์ชันคำนวณจุดที่เส้นตัดกับขอบวงกลม
+  const calculateEdgePoints = (sourceEl, targetEl) => {
+    const sourceCenterX = sourceEl.x + (sourceEl.width || 100) / 2;
+    const sourceCenterY = sourceEl.y + (sourceEl.height || 100) / 2;
+    const targetCenterX = targetEl.x + (targetEl.width || 100) / 2;
+    const targetCenterY = targetEl.y + (targetEl.height || 100) / 2;
+    
+    // คำนวณมุมระหว่างจุดศูนย์กลางทั้งสอง
+    const dx = targetCenterX - sourceCenterX;
+    const dy = targetCenterY - sourceCenterY;
+    const angle = Math.atan2(dy, dx);
+    
+    // สมมติว่าวงกลมมีรัศมี เท่ากับครึ่งของ width (ปรับตามขนาดจริงของวงกลม)
+    const sourceRadius = (sourceEl.width || 100) / 2;
+    const targetRadius = (targetEl.width || 100) / 2;
+    
+    // คำนวณจุดที่ขอบของวงกลม
+    const sourceEdgeX = sourceCenterX + Math.cos(angle) * sourceRadius;
+    const sourceEdgeY = sourceCenterY + Math.sin(angle) * sourceRadius;
+    
+    const targetEdgeX = targetCenterX - Math.cos(angle) * targetRadius;
+    const targetEdgeY = targetCenterY - Math.sin(angle) * targetRadius;
+    
+    return {
+      x1: sourceEdgeX,
+      y1: sourceEdgeY,
+      x2: targetEdgeX,
+      y2: targetEdgeY
+    };
+  };
+
   const validRelationships = elements
     .filter(element =>
       element.type === ELEMENT_TYPES.RELATIONSHIP &&
@@ -25,7 +56,12 @@ function RelationshipLayer({
       !getElementById(element.targetId).hidden
     )
     .map(relationship => {
-      const position = calculateRelationshipPosition(relationship, elements);
+      const sourceEl = getElementById(relationship.sourceId);
+      const targetEl = getElementById(relationship.targetId);
+      
+      // ใช้ฟังก์ชันใหม่แทนการใช้ calculateRelationshipPosition
+      const position = calculateEdgePoints(sourceEl, targetEl);
+      
       return { relationship, position, isValid: !!position };
     });
 
@@ -106,10 +142,10 @@ function RelationshipLayer({
             <g key={relationship.id}>
               {/* Main relationship line */}
               <line
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
+                x1={x1-40}
+                y1={y1+80}
+                x2={x2-40}
+                y2={y2+80}
                 stroke={color}
                 strokeWidth={isSelected ? 4 : 2}
                 strokeDasharray={getStrokeDashArray(lineType)}
@@ -144,8 +180,8 @@ function RelationshipLayer({
               <g transform={`translate(${midX + labelOffsetX}, ${midY + labelOffsetY})`}>
                 {/* Label background */}
                 <rect
-                  x="-40"
-                  y="-12"
+                  x="-60"
+                  y="30"
                   width="80"
                   height="24"
                   fill="white"
@@ -162,8 +198,8 @@ function RelationshipLayer({
                 
                 {/* Label text */}
                 <foreignObject
-                  x="-35"
-                  y="-8"
+                  x="-60"
+                  y="30"
                   width="70"
                   height="16"
                   className="relationship-label-container"
@@ -212,8 +248,8 @@ function RelationshipLayer({
               {isSelected && (
                 <g transform={`translate(${midX + labelOffsetX + 45}, ${midY + labelOffsetY - 12})`}>
                   <circle
-                    cx="0"
-                    cy="0"
+                    cx="-2"
+                    cy="45"
                     r="10"
                     fill="#ff4d4f"
                     stroke="white"
@@ -226,8 +262,8 @@ function RelationshipLayer({
                     style={{ cursor: 'pointer' }}
                   />
                   <text
-                    x="0"
-                    y="4"
+                    x="-2"
+                    y="49"
                     textAnchor="middle"
                     fill="white"
                     fontSize="12"
@@ -250,6 +286,10 @@ RelationshipLayer.propTypes = {
     id: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     hidden: PropTypes.bool,
+    x: PropTypes.number,
+    y: PropTypes.number,
+    width: PropTypes.number,
+    height: PropTypes.number,
     sourceId: PropTypes.string,
     targetId: PropTypes.string,
     relationshipType: PropTypes.string,

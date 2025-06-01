@@ -140,9 +140,6 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
       break;
     }
 
-
-
-
     case ELEMENT_TYPES.LINE: {
       ctx.beginPath();
       ctx.moveTo(zoomedX, zoomedY);
@@ -151,41 +148,8 @@ const renderElement = (ctx, element, isSelected, zoomLevel) => {
       break;
     }
 
-    case ELEMENT_TYPES.RELATIONSHIP: {
-      const sourceEl = window.elements?.find(el => el.id === element.sourceId);
-      const targetEl = window.elements?.find(el => el.id === element.targetId);
-
-      if (sourceEl && targetEl) {
-        const sourceX = sourceEl.x * zoomLevel;
-        const sourceY = sourceEl.y * zoomLevel;
-        const targetX = targetEl.x * zoomLevel;
-        const targetY = targetEl.y * zoomLevel;
-
-        ctx.beginPath();
-        ctx.moveTo(sourceX, sourceY);
-        ctx.lineTo(targetX, targetY);
-        ctx.strokeStyle = element.color || '#1677ff';
-        ctx.stroke();
-
-        if (element.text) {
-          const midX = (sourceX + targetX) / 2;
-          const midY = (sourceY + targetY) / 2;
-
-          ctx.font = `${12 * zoomLevel}px Arial`;
-          const textMetrics = ctx.measureText(element.text);
-          const padding = 5 * zoomLevel;
-
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(midX - textMetrics.width / 2 - padding, midY - 10 * zoomLevel, textMetrics.width + padding * 2, 20 * zoomLevel);
-
-          ctx.fillStyle = '#000000';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(element.text, midX, midY);
-        }
-      }
-      break;
-    }
+    // ✅ ลบ case ELEMENT_TYPES.RELATIONSHIP ออกทั้งหมด
+    // เพราะให้ RelationshipLayer.jsx จัดการแสดงผลแทน
 
     default:
       break;
@@ -224,8 +188,8 @@ const Canvas = ({
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
     
-    // Make elements globally available for rendering relationships
-    window.elements = elements;
+    // ✅ ไม่ต้องทำให้ elements เป็น global แล้ว
+    // เพราะ RelationshipLayer จัดการ relationship เอง
     
     // Initial render
     renderCanvas();
@@ -246,7 +210,6 @@ const Canvas = ({
   
   // Re-render when elements or selection changes
   useEffect(() => {
-    window.elements = elements;
     renderCanvas();
   }, [elements, selectedElements, zoomLevel]);
   
@@ -263,15 +226,18 @@ const Canvas = ({
     // Draw grid (optional)
     drawGrid(ctx, canvas.width, canvas.height, zoomLevel);
     
-    // Render elements in order
-    elements.forEach(element => {
-      renderElement(
-        ctx, 
-        element, 
-        selectedElements.includes(element.id),
-        zoomLevel
-      );
-    });
+    // ✅ แสดงผลเฉพาะ element ที่ไม่ใช่ RELATIONSHIP
+    // เพราะ RELATIONSHIP ให้ RelationshipLayer จัดการ
+    elements
+      .filter(element => element.type !== ELEMENT_TYPES.RELATIONSHIP)
+      .forEach(element => {
+        renderElement(
+          ctx, 
+          element, 
+          selectedElements.includes(element.id),
+          zoomLevel
+        );
+      });
   };
   
   // Draw a grid on the canvas
@@ -331,10 +297,8 @@ const Canvas = ({
           y <= element.y + 5
         );
         
-      case ELEMENT_TYPES.RELATIONSHIP:
-        // Not directly selectable/draggable from canvas
-        
-        return false;
+      // ✅ ลบ case ELEMENT_TYPES.RELATIONSHIP ออก
+      // เพราะ RelationshipLayer จัดการการคลิกเอง
         
       default:
         return false;
@@ -352,10 +316,11 @@ const Canvas = ({
     const x = (e.clientX - rect.left) / zoomLevel;
     const y = (e.clientY - rect.top) / zoomLevel;
     
-    // Find clicked element (in reverse order to get topmost first)
-    const clickedElement = [...elements].reverse().find(element => 
-      isPointInElement(x, y, element)
-    );
+    // ✅ หา element ที่คลิก โดยไม่รวม RELATIONSHIP
+    const clickedElement = [...elements]
+      .filter(element => element.type !== ELEMENT_TYPES.RELATIONSHIP)
+      .reverse()
+      .find(element => isPointInElement(x, y, element));
     
     if (clickedElement) {
       // Start dragging the clicked element
@@ -388,36 +353,35 @@ const Canvas = ({
   };
   
   // Handle mouse move for dragging
-const handleMouseMove = (e) => {
-  if (!isDragging || draggedElementIds.length === 0 || isErasing || relationshipMode) return;
+  const handleMouseMove = (e) => {
+    if (!isDragging || draggedElementIds.length === 0 || isErasing || relationshipMode) return;
 
-  const canvas = canvasRef.current;
-  if (!canvas) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / zoomLevel;
-  const y = (e.clientY - rect.top) / zoomLevel;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoomLevel;
+    const y = (e.clientY - rect.top) / zoomLevel;
 
-  // Calculate distance moved
-  const dx = x - dragStart.x;
-  const dy = y - dragStart.y;
+    // Calculate distance moved
+    const dx = x - dragStart.x;
+    const dy = y - dragStart.y;
 
-  // Update drag start for the next move
-  setDragStart({ x, y });
+    // Update drag start for the next move
+    setDragStart({ x, y });
 
-  // Update position for all dragged elements
-  draggedElementIds.forEach((id) => {
-    const element = elements.find((el) => el.id === id);
-    if (element) {
-      updateElement(id, {
-        x: element.x + dx,
-        y: element.y + dy,
-      });
-    }
-  });
-};
+    // Update position for all dragged elements
+    draggedElementIds.forEach((id) => {
+      const element = elements.find((el) => el.id === id);
+      if (element) {
+        updateElement(id, {
+          x: element.x + dx,
+          y: element.y + dy,
+        });
+      }
+    });
+  };
 
-  
   // Handle mouse up to end dragging
   const handleMouseUp = () => {
     if (isDragging) {
@@ -425,7 +389,6 @@ const handleMouseMove = (e) => {
       setDraggedElementIds([]);
     }
   };
-  
   
   // Handle mouse out to end dragging if cursor leaves canvas
   const handleMouseOut = () => {
@@ -441,7 +404,6 @@ const handleMouseMove = (e) => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseOut={handleMouseOut}
-        
         style={{ cursor: isDragging ? 'grabbing' : 'default' }}
       />
     </div>

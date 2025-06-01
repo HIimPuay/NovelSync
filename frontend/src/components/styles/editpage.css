@@ -472,6 +472,7 @@
   height: 100%;
   pointer-events: none;
   z-index: 5;
+
 }
 
 .relationship-line {
@@ -480,6 +481,8 @@
   pointer-events: auto;
   stroke-linecap: round;
   stroke-linejoin: round;
+  stroke-width: 2;
+  
 }
 
 .relationship-line:hover {

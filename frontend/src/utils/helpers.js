@@ -15,23 +15,59 @@ export const getCharacterTypeStyles = (characterType) => {
   }
 };
 
-// Calculate relationship line positions
+// ✅ ฟังก์ชันใหม่: คำนวณจุดตัดของเส้นตรงกับวงกลม
+const getCircleIntersection = (centerX, centerY, radius, lineStartX, lineStartY, lineEndX, lineEndY) => {
+  // คำนวณทิศทางของเส้น
+  const dx = lineEndX - lineStartX;
+  const dy = lineEndY - lineStartY;
+  const length = Math.sqrt(dx * dx + dy * dy);
+  
+  if (length === 0) return { x: centerX, y: centerY };
+  
+  // หา unit vector
+  const unitX = dx / length;
+  const unitY = dy / length;
+  
+  // คำนวณจุดบนขอบวงกลม
+  return {
+    x: centerX + unitX * radius,
+    y: centerY + unitY * radius
+  };
+};
+
+// ✅ ปรับปรุงฟังก์ชันคำนวณตำแหน่งเส้นความสัมพันธ์
 export const calculateRelationshipPosition = (relationship, elements) => {
   const source = elements.find(el => el.id === relationship.sourceId);
   const target = elements.find(el => el.id === relationship.targetId);
   
   if (!source || !target) return null;
   
-  // Find center of circles
-  const sourceX = source.x + 40; // Half width of circle
-  const sourceY = source.y + 40; // Half height of circle
-  const targetX = target.x + 40;
-  const targetY = target.y + 40;
+  // หาจุดศูนย์กลางของวงกลม
+  const sourceCenterX = source.x + (source.width || 100) / 2;
+  const sourceCenterY = source.y + (source.height || 100) / 2;
+  const targetCenterX = target.x + (target.width || 100) / 2;
+  const targetCenterY = target.y + (target.height || 100) / 2;
+  
+  // หารัศมีของวงกลม
+  const sourceRadius = (source.width || 100) / 2;
+  const targetRadius = (target.width || 100) / 2;
+  
+  // คำนวณจุดเริ่มต้นบนขอบวงกลมต้นทาง (ชี้ไปหาปลายทาง)
+  const sourceEdge = getCircleIntersection(
+    sourceCenterX, sourceCenterY, sourceRadius,
+    sourceCenterX, sourceCenterY, targetCenterX, targetCenterY
+  );
+  
+  // คำนวณจุดปลายบนขอบวงกลมปลายทาง (ชี้มาจากต้นทาง)
+  const targetEdge = getCircleIntersection(
+    targetCenterX, targetCenterY, targetRadius,
+    targetCenterX, targetCenterY, sourceCenterX, sourceCenterY
+  );
   
   return {
-    x1: sourceX,
-    y1: sourceY,
-    x2: targetX,
-    y2: targetY
+    x1: sourceEdge.x,
+    y1: sourceEdge.y,
+    x2: targetEdge.x,
+    y2: targetEdge.y
   };
 };

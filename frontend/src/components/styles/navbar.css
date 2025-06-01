@@ -118,8 +118,9 @@
 /* User Info */
 .user-info {
   text-align: center;
+  color: #333;
   padding: 10px;
-  background-color: #f8f9fa;
+  background-color: #FFFBE9;
   border-radius: 12px;
   width: 100%;
   max-width: 200px;
