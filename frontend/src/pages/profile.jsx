@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { authAPI } from "../services/api";
+import {Pencil, User2, } from "lucide-react"
 import "../components/styles/profile.css";
 
 function Profile() {
@@ -146,7 +147,7 @@ function Profile() {
         >
           {!profileImage && (
             <div className="no-image-placeholder">
-              <span>👤</span>
+              <span><User2 size={50} /></span>
             </div>
           )}
         </div>
@@ -158,7 +159,7 @@ function Profile() {
           disabled={isLoading}
           title="Change profile picture"
         >
-          ✏️
+          <Pencil size={20} />
         </button>
       </div>
 
@@ -209,14 +210,6 @@ function Profile() {
           disabled={isLoading || isEditingName}
         >
           Edit name
-        </button>
-        
-        <button 
-          className="action-btn secondary-btn" 
-          onClick={handleEditProfile}
-          disabled={isLoading}
-        >
-          Edit profile
         </button>
       </div>
 

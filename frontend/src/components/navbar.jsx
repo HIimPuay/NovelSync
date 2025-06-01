@@ -1,7 +1,7 @@
 // frontend/src/components/navbar.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import "./styles/navbar.css";
 
@@ -34,19 +34,6 @@ function Navbar() {
         <Link to="/">NovelSync</Link>
       </div>
 
-      <form className="search-container" onSubmit={handleSearch}>
-        <input 
-          type="text" 
-          placeholder="ค้นหา..." 
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button type="submit" className="search-button">
-          <Search className="search-icon" size={20} />
-        </button>
-      </form>
-
       <div className="nav-controls">
         {!isLoggedIn && (
           <div className="signin-icon">
@@ -72,6 +59,7 @@ function Navbar() {
             <>
               <li><Link to="/edit" onClick={() => setMenuOpen(false)}>Create</Link></li>
               <li><Link to="/profile" onClick={() => setMenuOpen(false)}>Account</Link></li>
+              <li><a href="#" onClick={() => setMenuOpen(false)}>Help</a></li>
               <li><button onClick={handleLogout}>Logout</button></li>
             </>
           )}
@@ -81,7 +69,6 @@ function Navbar() {
               <li><Link to="/register" onClick={() => setMenuOpen(false)}>Register</Link></li>
             </>
           )}
-          <li><a href="#" onClick={() => setMenuOpen(false)}>Help</a></li>
         </ul>
       </div>
     </nav>

@@ -290,7 +290,7 @@
   position: absolute;
   right: 20px;
   top: 80px;
-  z-index: 100;
+  z-index: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 

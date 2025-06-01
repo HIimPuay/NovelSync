@@ -19,38 +19,6 @@
   text-decoration: none;
 }
 
-.search-container {
-  display: flex;
-  align-items: center;
-  position: relative;
-  flex: 1;
-  max-width: 500px;
-  margin: 0 2rem;
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  padding-right: 2.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  background: #FFFBE9;
-  color: black;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.search-icon {
-  position: absolute;
-  right: 10px;
-  color: #000000;
-}
 
 /* Updated positioning for signin-icon */
 .signin-icon a {
@@ -145,4 +113,14 @@
   .search-container {
     display: none;
   }
+}
+
+/* User Info */
+.user-info {
+  text-align: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 200px;
 }
