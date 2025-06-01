@@ -8,6 +8,7 @@ export default function useElementManager(canvasRef) {
   const [selectedElements, setSelectedElements] = useState([]);
   const fileInputRef = useRef(null);
 
+  
   const addElement = (type) => (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
@@ -167,8 +168,15 @@ export default function useElementManager(canvasRef) {
   };
 
   const getSelectedElement = () => {
-    return elements.find(el => selectedElements[0] === el.id);
-  };
+  if (!Array.isArray(elements)) return null;
+  if (selectedElements.length === 0) return null;
+
+  const selectedElementId = selectedElements[0];
+  return elements.find(el => el.id === selectedElementId) || null;
+};
+
+
+
 
   const setElementsFromProject = (newElements) => {
     setElements(newElements);
@@ -188,6 +196,12 @@ export default function useElementManager(canvasRef) {
     };
   };
 
+  const loadProject = (newElements) => {
+  setElements(newElements);
+  setSelectedElements([]);
+  };
+
+
   return {
     elements,
     selectedElements,
@@ -202,6 +216,7 @@ export default function useElementManager(canvasRef) {
     clearSelection,
     setCharacterType,
     triggerImageUpload,
-    getRelationshipStats // ✅ คืนค่าออกไปให้ใช้ใน editpage.jsx
+    getRelationshipStats,
+    loadProject
   };
 }

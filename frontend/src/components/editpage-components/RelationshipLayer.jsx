@@ -145,7 +145,7 @@ function RelationshipLayer({
                 x1={x1-40}
                 y1={y1+80}
                 x2={x2-40}
-                y2={y2+80}
+                y2={y2+75}
                 stroke={color}
                 strokeWidth={isSelected ? 4 : 2}
                 strokeDasharray={getStrokeDashArray(lineType)}
@@ -198,7 +198,7 @@ function RelationshipLayer({
                 
                 {/* Label text */}
                 <foreignObject
-                  x="-60"
+                  x="-55"
                   y="30"
                   width="70"
                   height="16"
@@ -208,7 +208,7 @@ function RelationshipLayer({
                     <input
                       type="text"
                       value={relationship.text || ''}
-                      placeholder="ป้ายกำกับ"
+                      placeholder="relationship"
                       className="relationship-label-input"
                       onClick={(e) => e.stopPropagation()}
                       onChange={(e) => updateElement(relationship.id, { text: e.target.value })}
@@ -238,42 +238,14 @@ function RelationshipLayer({
                         lineHeight: '16px'
                       }}
                     >
-                      {relationship.text || 'ป้ายกำกับ'}
+                      {relationship.text || 'relationship'}
                     </div>
                   )}
                 </foreignObject>
               </g>
 
               {/* Delete button when selected */}
-              {isSelected && (
-                <g transform={`translate(${midX + labelOffsetX + 45}, ${midY + labelOffsetY - 12})`}>
-                  <circle
-                    cx="-2"
-                    cy="45"
-                    r="10"
-                    fill="#ff4d4f"
-                    stroke="white"
-                    strokeWidth="2"
-                    className="relationship-delete-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeElement(relationship.id);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <text
-                    x="-2"
-                    y="49"
-                    textAnchor="middle"
-                    fill="white"
-                    fontSize="12"
-                    fontWeight="bold"
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    ×
-                  </text>
-                </g>
-              )}
+              
             </g>
           );
         })}

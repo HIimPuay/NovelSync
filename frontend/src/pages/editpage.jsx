@@ -9,6 +9,7 @@ import '../components/styles/editpage.css';
 import useElementManager from '../hooks/useElementManager';
 import useToolManager from '../hooks/useToolManager';
 
+
 // Components
 import ProjectName from '../components/editpage-components/ProjectName';
 import Toolbar from '../components/editpage-components/Toolbar';
